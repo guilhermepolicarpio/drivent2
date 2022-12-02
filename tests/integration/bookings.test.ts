@@ -11,15 +11,16 @@ import {
     createEnrollmentWithAddress,
     createTicket,
     createTicketType,
+    createHotel,
   } from "../factories";
+import { createRoom } from "../factories/room-factory";
+import {createBooking} from "../factories/booking-factory"
 
 beforeAll(async () => {
     await init();
   });
   
-  beforeEach(async () => {
-    await cleanDb();
-  });
+
   
   const server = supertest(app);
   
@@ -65,10 +66,21 @@ beforeAll(async () => {
             const enrollment = await createEnrollmentWithAddress(user);
             const ticketType = await createTicketType({isRemote: false, includesHotel: true});
             await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID);
-         
+            const hotel = await createHotel();
+            const room = await createRoom({hotelId: hotel.id, capacity:2});
+            const booking = await createBooking({userId: user.id, roomId: room.id})
             
             const response = await server.get("/booking").set("Authorization", `Bearer ${token}`);
-            expect(response.status).toEqual(httpStatus.NOT_FOUND);           
+            expect(response.status).toEqual(httpStatus.OK);    
+            expect(response.body).toEqual({
+                id: booking.id,
+                Room:{
+                    id: room.id,
+                    name: room.name,
+                    capacity: room.capacity,
+                    hotelId: room.hotelId,
+                }
+            })       
           });
     })
 
