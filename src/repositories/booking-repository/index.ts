@@ -18,10 +18,19 @@ async function postNewBooking(newBookingData:NewBooking) {
     })
 }
 
+async function findBookingByRoomId(roomId: number){
+  return prisma.booking.findMany({
+    where:{
+      roomId,
+    },
+  });
+}
+
 export type NewBooking = Pick<Booking, "userId" | "roomId">
 const bookingRepository={
     findBookingByUserId,
-    postNewBooking
+    postNewBooking,
+    findBookingByRoomId
 }
 
 export default bookingRepository;
